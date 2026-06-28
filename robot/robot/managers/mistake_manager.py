@@ -18,19 +18,19 @@ class MistakeManager:
             conn.commit()
 
     def record(self, user_id, ru_word, zh_word, is_correct):
-        """记录一次答题结果"""
         with self.db._get_connection() as conn:
-            # 查找是否已有该用户的这个单词
             row = conn.execute(
                 "SELECT total_wrong, consecutive_correct FROM user_mistake_stats "
                 "WHERE user_id=? AND ru_word=? AND zh_word=?",
                 (user_id, ru_word, zh_word)
             ).fetchone()
 
+            print(f"DEBUG record: user={user_id}, word={ru_word}, correct={is_correct}, row={row}")
+
             if row is None:
-                # 第一次遇到这个单词
-                total_wrong = 1
+                total_wrong = 0 if is_correct else 1
                 cc = 1 if is_correct else 0
+                print(f"DEBUG: 新记录, total_wrong={total_wrong}, cc={cc}")
                 conn.execute(
                     "INSERT INTO user_mistake_stats VALUES (?, ?, ?, ?, ?)",
                     (user_id, ru_word, zh_word, total_wrong, cc)
@@ -39,7 +39,9 @@ class MistakeManager:
                 total_wrong, cc = row
                 if is_correct:
                     cc += 1
-                    if cc >= 3:      # 连对3次，删除记录
+                    print(f"DEBUG: 答对, cc={cc}")
+                    if cc >= 3:
+                        print(f"DEBUG: 连对3次，删除")
                         conn.execute(
                             "DELETE FROM user_mistake_stats WHERE user_id=? AND ru_word=? AND zh_word=?",
                             (user_id, ru_word, zh_word)
@@ -52,7 +54,7 @@ class MistakeManager:
                             (cc, user_id, ru_word, zh_word)
                         )
                 else:
-                    # 答错：错误次数+1，连续正确归零
+                    print(f"DEBUG: 答错, total_wrong={total_wrong + 1}")
                     conn.execute(
                         "UPDATE user_mistake_stats SET total_wrong=?, consecutive_correct=0 WHERE user_id=? AND ru_word=? AND zh_word=?",
                         (total_wrong + 1, user_id, ru_word, zh_word)

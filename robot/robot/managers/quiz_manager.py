@@ -862,7 +862,16 @@ class QuizManager:
         if self.mistake_manager and user_id:
             mistakes = self.mistake_manager.get_mistake_words(user_id)
             if mistakes and random.random() < 0.8:
-                return random.choice(mistakes)
+                word = random.choice(mistakes)
+                # 错题库只有 ru_word 和 zh_word，需要补 en_word
+                if "en_word" not in word:
+                    with self.db._get_connection() as conn:
+                        row = conn.execute(
+                            "SELECT english FROM word_bank WHERE russian=? AND chinese=?",
+                            (word["ru_word"], word["zh_word"])
+                        ).fetchone()
+                    word["en_word"] = row[0] if row else ""
+                return word
         return self.get_random_word(level=level)
 
     def _answer_candidates(self, expected):

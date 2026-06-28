@@ -179,17 +179,22 @@ class RusHelperBot:
                 self.bot.answer_callback_query(call.id)
                 show_my_vocabulary(call.message.chat.id, user_id)
 
+
             elif call.data == "get_help":
+
                 self.bot.answer_callback_query(call.id)
-                if self.user_lang.get(user_id, 'zh') == 'en':
-                    self.bot.send_message(call.message.chat.id,
-                                          "I'm your Russian learning assistant.\n"
-                                          "Switch language anytime via 🌐 Language Settings."
-                                          )
-                else:
-                    self.bot.send_message(call.message.chat.id,
-                                          "我是你的俄语助手。\n随时点击 🌐 语言设置 切换语言。"
-                                          )
+
+                self.bot.send_message(call.message.chat.id,
+
+                                      "我是你的俄语助手。\n"
+
+                                      "I'm your Russian learning assistant.\n\n"
+
+                                      "随时点击 🌐 语言设置 切换语言。\n"
+
+                                      "Switch language anytime via 🌐 Language Settings."
+
+                                      )
 
             elif call.data == "study_words":
                 self.bot.answer_callback_query(call.id)
@@ -314,7 +319,7 @@ class RusHelperBot:
                         self.bot.send_message(call.message.chat.id, "🎉 暂时没有需要复习的错题，继续保持！")
                     return
 
-                question = self.quiz_manager.build_quiz_question(mode="ru_to_zh", user_id=user_id)
+                question = self.quiz_manager.build_quiz_question(mode="ru_to_zh", user_id=user_id, lang=lang)
                 if not question:
                     if lang == 'en':
                         self.bot.send_message(call.message.chat.id, "Not enough words in bank.")
